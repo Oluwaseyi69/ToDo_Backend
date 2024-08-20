@@ -1,35 +1,21 @@
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
-const User = require('../models/UserModel');
 
 dotenv.config();
 
 
-module.exports = async (req, res, next) => {
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1]
- 
 
+exports.authenticate = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
+    return res.status(401).json({ message: 'No token provided' });
   }
 
   try {
-    const secret = process.env.JWT_SECRET;
-    console.log(secret);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded);
-    const {id} = decoded.user;
-    console.log(id)
-    const user =  await User.findById(id);
-    console.log(user);
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid tokenn' });
-    }
-    
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET,  { algorithms: ['HS256'] });
+    req.user = decoded; // Assumes the decoded token contains the user ID
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Token is not valid' });
+    res.status(401).json({ message: 'Invalid token' });
   }
 };

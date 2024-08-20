@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
-// const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
-// const bcrypt = require('bcryptjs');
-// const argon2 = require('argon2');
+
 
 console.log('i am at model');
 const UserSchema = new mongoose.Schema({
@@ -19,7 +18,7 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    // required: true,
+    required: true,
     minlenght: 4
   },
   phoneNumber: {
@@ -47,36 +46,21 @@ const UserSchema = new mongoose.Schema({
 });
 
 
-// UserSchema.pre('save', async function (next) {
-//   if (!this.isModified('password')) {
-//     return next();
-//   }
-//   const salt = await bcrypt.genSalt(10);
-//   this.password = await bcrypt.hash(this.password, salt);
-//   next();
-// });
-// UserSchema.pre('save', async function (next) {
-//   if (!this.isModified('password')) {
-//     return next();
-//   }
-
-//   try {
-//     this.password = await argon2.hash(this.password);  
-
-//     next();
-//   } catch (err) {
-//     return next(err);
-//   }
-// });
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
 
 
-// UserSchema.methods.matchPassword = async function (enteredPassword) {
-//   return await bcrypt.compare(enteredPassword, this.password);
-// };
 
-// UserSchema.methods.matchPassword = async function (enteredPassword) {
-//   return await argon2.verify(this.password, enteredPassword);  
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
-// };
+
 
 module.exports = mongoose.model('User', UserSchema);

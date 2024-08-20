@@ -1,7 +1,5 @@
 const userService = require('../services/UserService')
 
-
-
 exports.register = async (req, res) => {
   console.log("i go to controller first")
   console.log("Register endpoint hit");

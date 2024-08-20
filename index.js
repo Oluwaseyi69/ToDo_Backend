@@ -4,6 +4,7 @@ const express = require('express')
 const app = express()
 const connectDB = require('./config/Database');
 const userRoutes = require('./routes/UserRoutes')
+const todoRoutes = require('./routes/TodoRoutes')
 const bodyParser = require('body-parser');
 
 
@@ -26,7 +27,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api/auth', userRoutes)
+app.use('/api/auth', userRoutes);
+app.use('/api/todo', todoRoutes);
 
 
 

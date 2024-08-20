@@ -1,6 +1,7 @@
 const User = require('../model/UserModel')
 const jwt = require('jsonwebtoken')
 const dotenv = require('dotenv')
+const bcrypt = require('bcryptjs');
 
 
 dotenv.config();
@@ -8,12 +9,8 @@ dotenv.config();
 const register = async (req, res) => {
   console.log("i got to service first ")
   console.log("i got to register")
-  // console.log(res);
   const { email, username, password, phoneNumber} = req.body;
 
-  // if(password.length < 4){
-  //   return res.status(400).json({message: 'Password must be atleast 4 characters long'})
-  // }
 
   if (!/^\+234\d{10}$/.test(phoneNumber)) {
     return res.status(400).json({ message: 'Phone number must start with +234 and be 10 digits long' });
@@ -41,6 +38,7 @@ const register = async (req, res) => {
       id: user._id,
       email: user.email,
       username: user.username,
+      password: user.password,
       createdAt: new Date()
     };
 
@@ -55,51 +53,40 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
 
-  // if (!req.body.email || !req.body.password) {
-  //   return res.status(400).json({ message: 'Invalid request body' });
-  // }  
+  console.log("Login endpoint hit");
+
+
   try {
-    
-
+    console.log("i got here")
     const { email, password } = req.body;
-    console.log(email)
-    
-    let user;
 
-    if (email) {
-      user = await User.findOne({ email });
-    } else if (email) {
-      user = await User.findOne({ email });
-    }
-    console.log("verified", email)
+    console.log(email);
+    const user = await User.findOne({ email });
     if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log("isMatch");
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+    console.log(password)
 
-    // const isMatch = await user.matchPassword(password);
-    // if (!isMatch) {
-    //   return res.status(400).json({ message: 'Invalid credentials' });
-    // }
-
-    const payload = {
-      user: {
-        id: user.id,
-        role: user.role
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ message: 'Login Successful', token });
-      }
+    console.log("i got to jwt")
+    const token = jwt.sign(
+      { userId: user._id, email: user.email }, 
+      process.env.JWT_SECRET,                   
+      { algorithm: 'HS256', expiresIn: '1h' }  
     );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+
+    res.status(200).json({ 
+      message: "Login Successfully",
+      token });
+
+  }catch (err) {
+    console.error('Error during login:', err.message);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
