@@ -1,53 +1,49 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-
-
-console.log('i am at model');
+console.log("i am at model");
 const UserSchema = new mongoose.Schema({
- 
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   username: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
     required: true,
-    minlenght: 4
+    minlenght: 4,
   },
   phoneNumber: {
     type: String,
-    required: true,
+    // required: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         return /^\+234\d{10}$/.test(v);
       },
-      message: props => `${props.value} is not a valid phone number!`
-    }
+      message: (props) => `${props.value} is not a valid phone number!`,
+    },
   },
-  
-    createdAt: {
+
+  createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   referralId: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);
@@ -55,12 +51,8 @@ UserSchema.pre('save', async function (next) {
   next();
 });
 
-
-
 UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-
-
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model("User", UserSchema);
